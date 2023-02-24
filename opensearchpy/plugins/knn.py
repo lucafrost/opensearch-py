@@ -12,28 +12,72 @@ from ..client.utils import NamespacedClient, _make_path, query_params
 
 
 class KnnClient(NamespacedClient):
-    @query_params()
-    def search_monitor(self, body, params=None, headers=None):
-        """
-        Returns the search result for a monitor.
+    """
+    Client for k-Nearest Neighbor (k-NN) API abstractions, used to
+    simplify k-NN queries and call APIs for the k-NN plugin.
 
-        :arg monitor_id: The configuration for the monitor we are trying to search
+    OS Docs: https://opensearch.org/docs/latest/search-plugins/knn/api/
+    GitHub Issue: https://github.com/opensearch-project/opensearch-py/issues/300 
+    """
+
+    @query_params()
+    def approx(self, index, field, vector, size=10, params=None, headers=None):
         """
+        Perform approximate k-NN searching on an index.
+        Docs: https://opensearch.org/docs/latest/search-plugins/knn/approximate-knn/
+
+        :arg index: 
+        :arg field: 
+        :arg vector:
+        :arg size: 
+        """
+        body = {
+            "size", size,
+            "query": {
+                "knn": {
+                    field: {
+                        "vector": vector,
+                        "k": size
+                    }
+                }
+            }
+        }
         return self.transport.perform_request(
-            "GET",
-            _make_path("_plugins", "_alerting", "monitors", "_search"),
+            "POST",
+            _make_path(index, "_search"),
             params=params,
             headers=headers,
             body=body,
         )
 
     @query_params()
-    def get_monitor(self, monitor_id, params=None, headers=None):
+    def exact(self, monitor_id, params=None, headers=None):
         """
-        Returns the details of a specific monitor.
+        Perform exact k-NN searching on an index.
+        Docs: https://opensearch.org/docs/latest/search-plugins/knn/knn-score-script/
 
         :arg monitor_id: The id of the monitor we are trying to fetch
         """
+
+        # {
+        # "size": 4,
+        # "query": {
+        # "script_score": {
+        #     "query": {
+        #     "match_all": {}
+        #     },
+        #     "script": {
+        #     "source": "knn_score",
+        #     "lang": "knn",
+        #     "params": {
+        #         "field": "my_vector2",
+        #         "query_value": [2.0, 3.0, 5.0, 6.0],
+        #         "space_type": "cosinesimil"
+        #     }
+        #     }
+        # }
+        # }
+        # }
         return self.transport.perform_request(
             "GET",
             _make_path("_plugins", "_alerting", "monitors", monitor_id),
